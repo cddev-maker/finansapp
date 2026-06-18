@@ -4,18 +4,23 @@ export const CURRENCY_SYMBOL = "₺";
 export const LOCALE          = "tr-TR";
 
 export const CATEGORY_LABELS: Record<Category, string> = {
-  SALARY:        "Maaş",
-  RENT:          "Kira",
-  GROCERIES:     "Market",
-  UTILITIES:     "Faturalar",
-  FUEL:          "Yakıt",
-  CREDIT_CARD:   "Kredi Kartı",
-  EDUCATION:     "Eğitim",
-  HEALTHCARE:    "Sağlık",
-  ENTERTAINMENT: "Eğlence",
-  INVESTMENT:    "Yatırım",
-  TRANSFER:      "Transfer",
-  OTHER:         "Diğer",
+  VEHICLE_MAINTENANCE: "Araç Bakım Gideri",
+  BUILDING_DUES:       "Bina Aidatı",
+  DEBT:                "Borç",
+  EDUCATION:           "Eğitim",
+  ENTERTAINMENT:       "Eğlence",
+  UTILITIES:           "Faturalar",
+  HEALTHCARE:          "Sağlık",
+  FUEL:                "Yakıt",
+  GROCERIES:           "Market",
+  SALARY:              "Maaş",
+  EXPENSE_PAYMENT:     "Masraf Ödemesi",
+  RENT:                "Kira",
+  CREDIT_CARD:         "Kredi Kartı",
+  LOAN_PAYMENT:        "Kredi Ödemesi",
+  TRANSFER:            "Transfer",
+  INVESTMENT:          "Yatırım",
+  OTHER:               "Diğer",
 };
 
 export const CATEGORIES: Category[] = [
