@@ -112,12 +112,7 @@ export default function LoginPage() {
           </form>
         </Form>
 
-        {/* Demo credentials hint */}
-        <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/10 text-xs text-muted-foreground">
-          <p className="font-semibold text-foreground mb-1">Demo Hesabı</p>
-          <p>E-posta: demo@finansapp.dev</p>
-          <p>Şifre: Demo1234!</p>
-        </div>
+        
       </CardContent>
 
       <CardFooter className="flex-col gap-2 pt-0">
