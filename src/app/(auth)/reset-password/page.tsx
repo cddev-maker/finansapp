@@ -1,4 +1,5 @@
 "use client";
+import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,30 +14,37 @@ import { useToast } from "@/hooks/use-toast";
 
 type Schema = z.infer<typeof resetPasswordSchema>;
 
-export default function ResetPasswordPage() {
-  const router  = useRouter();
-  const params  = useSearchParams();
-  const token   = params.get("token");
+function ResetPasswordForm() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const token = params.get("token");
   const { toast } = useToast();
 
-  const form = useForm<Schema>({ resolver: zodResolver(resetPasswordSchema), defaultValues: { password: "", confirmPassword: "" } });
+  const form = useForm<Schema>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: "", confirmPassword: "" }
+  });
 
   const onSubmit = async (data: Schema) => {
     if (!token) { toast({ title: "Geçersiz bağlantı", variant: "destructive" }); return; }
     const res = await fetch("/api/auth/reset-password", {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, password: data.password }),
     });
     const json = await res.json();
     if (!res.ok) { toast({ title: "Hata", description: json.error, variant: "destructive" }); return; }
-    toast({ title: "Şifre güncellendi", description: "Yeni şifrenizle giriş yapabilirsiniz." });
+    toast({ title: "Şifre güncellendi" });
     router.push("/login");
   };
 
   if (!token) {
     return (
       <Card className="shadow-xl border-0">
-        <CardHeader><CardTitle>Geçersiz Bağlantı</CardTitle><CardDescription>Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş.</CardDescription></CardHeader>
+        <CardHeader>
+          <CardTitle>Geçersiz Bağlantı</CardTitle>
+          <CardDescription>Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş.</CardDescription>
+        </CardHeader>
       </Card>
     );
   }
@@ -71,5 +79,13 @@ export default function ResetPasswordPage() {
         </Form>
       </CardContent>
     </Card>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
