@@ -8,7 +8,6 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   BUILDING_DUES:       "Bina Aidatı",
   DEBT:                "Borç",
   EDUCATION:           "Eğitim",
-  ENTERTAINMENT:       "Eğlence",
   UTILITIES:           "Faturalar",
   HEALTHCARE:          "Sağlık",
   FUEL:                "Yakıt",
