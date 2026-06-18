@@ -47,7 +47,7 @@ async function main() {
   const user = await prisma.user.create({
     data: {
       email:    "demo@finansapp.dev",
-      name:     "Ayşe Yılmaz",
+      name:     "Lara Demirel",
       password: passwordHash,
       role:     "USER",
       settings: {
