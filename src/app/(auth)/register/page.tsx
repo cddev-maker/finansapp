@@ -49,7 +49,7 @@ export default function RegisterPage() {
     <Card className="shadow-xl border-0 bg-card/95 backdrop-blur">
       <CardHeader className="space-y-1 pb-6">
         <CardTitle className="text-2xl font-extrabold">Hesap Oluşturun</CardTitle>
-        <CardDescription>Ücretsiz kayıt olun ve finanslarınızı yönetin</CardDescription>
+        <CardDescription>Ücretsiz kayıt olun ve kişisel finansınızı yönetin</CardDescription>
       </CardHeader>
 
       <CardContent>
@@ -58,7 +58,7 @@ export default function RegisterPage() {
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem>
                 <FormLabel>Ad Soyad</FormLabel>
-                <FormControl><Input placeholder="Ayşe Yılmaz" autoComplete="name" {...field} /></FormControl>
+                <FormControl><Input placeholder="Lara Demirel" autoComplete="name" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
