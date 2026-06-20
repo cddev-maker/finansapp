@@ -83,12 +83,12 @@ export default function CreditCardsPage() {
 <div className="flex items-start justify-between mb-6">
   <div>
     <div className="flex items-center gap-1.5 mb-1">
-      {(card as never as { bankName?: string }).bankName && (
-        <BankLogo bank={(card as never as { bankName: BankName }).bankName} size={16} />
-      )}
+      {card.bankName ? (
+        <BankLogo bank={card.bankName as BankName} size={16} />
+      ) : null}
       <p className="text-xs font-semibold opacity-80 uppercase tracking-wider">
-        {(card as never as { cardBrand?: string }).cardBrand
-          ? CARD_BRAND_LABELS[(card as never as { cardBrand: CardBrand }).cardBrand]
+        {card.cardBrand
+          ? CARD_BRAND_LABELS[card.cardBrand as CardBrand]
           : CARD_NETWORK_LABELS[card.network]}
       </p>
     </div>
