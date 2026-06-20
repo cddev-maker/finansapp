@@ -50,51 +50,86 @@ export const GET = withAuth(async (userId, req) => {
 
 export const POST = withAuth(async (userId, req) => {
   try {
-    const body   = await req.json();
-    const parsed = createPaymentSchema.safeParse(body);
+    const body = await req.json();
+    const { recurMonths, ...rawData } = body;
+    const parsed = createPaymentSchema.safeParse(rawData);
     if (!parsed.success) return badRequest("Geçersiz veri", parsed.error.flatten());
 
     const { dueDate, startDate, endDate, status, ...rest } = parsed.data;
-
-    // Ödeme ile İşlemler entegrasyonu:
-    // Eğer ödeme "ödendi" olarak oluşturuluyorsa, otomatik bir İşlem (gider) kaydı da oluşturulur.
     const isPaid = status === "PAID";
 
-    const result = await prisma.$transaction(async (tx) => {
-      const payment = await tx.payment.create({
+    // ── Tekrarlama YOK: tek kayıt oluştur (mevcut davranış) ──────────────────
+    if (!recurMonths || recurMonths < 2) {
+      const result = await prisma.$transaction(async (tx) => {
+        const payment = await tx.payment.create({
+          data: {
+            userId,
+            dueDate:   new Date(dueDate),
+            startDate: new Date(startDate),
+            endDate:   endDate ? new Date(endDate) : null,
+            status:    status ?? "PENDING",
+            completed: isPaid,
+            completedAt: isPaid ? new Date() : null,
+            ...rest,
+          },
+        });
+
+        if (isPaid) {
+          await tx.transaction.create({
+            data: {
+              userId, date: new Date(dueDate), description: rest.name,
+              category: rest.category, amount: rest.amount, type: "EXPENSE",
+              notes: "Ödemeler sekmesinden otomatik oluşturuldu",
+              linkedPaymentId: payment.id,
+            },
+          });
+        }
+        return payment;
+      });
+
+      logAudit(userId, "CREATE_PAYMENT", "Payment", result.id);
+      return created(serialize(result));
+    }
+
+    // ── Tekrarlama VAR: recurMonths kadar ayrı kayıt oluştur ─────────────────
+    const seriesId = `series_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const baseDate = new Date(dueDate);
+    const createdPayments = [];
+
+    for (let i = 0; i < recurMonths; i++) {
+      const occurrenceDate = new Date(baseDate);
+      occurrenceDate.setMonth(baseDate.getMonth() + i);
+
+      const payment = await prisma.payment.create({
         data: {
           userId,
-          dueDate:   new Date(dueDate),
-          startDate: new Date(startDate),
-          endDate:   endDate ? new Date(endDate) : null,
-          status:    status ?? "PENDING",
-          completed: isPaid,
-          completedAt: isPaid ? new Date() : null,
+          dueDate:    occurrenceDate,
+          startDate:  occurrenceDate,
+          endDate:    endDate ? new Date(endDate) : null,
+          status:     i === 0 ? (status ?? "PENDING") : "PENDING",
+          completed:  i === 0 ? isPaid : false,
+          completedAt: i === 0 && isPaid ? new Date() : null,
+          seriesId,
           ...rest,
         },
       });
+      createdPayments.push(payment);
 
-      if (isPaid) {
-        const transaction = await tx.transaction.create({
+      // Sadece ilk ay için, eğer ödendi işaretliyse İşlem de oluştur
+      if (i === 0 && isPaid) {
+        await prisma.transaction.create({
           data: {
-            userId,
-            date:        new Date(dueDate),
-            description: rest.name,
-            category:    rest.category,
-            amount:      rest.amount,
-            type:        "EXPENSE",
-            notes:       "Ödemeler sekmesinden otomatik oluşturuldu",
+            userId, date: occurrenceDate, description: rest.name,
+            category: rest.category, amount: rest.amount, type: "EXPENSE",
+            notes: "Ödemeler sekmesinden otomatik oluşturuldu",
             linkedPaymentId: payment.id,
           },
         });
-        return { ...payment, _linkedTransactionId: transaction.id };
       }
+    }
 
-      return payment;
-    });
-
-    logAudit(userId, "CREATE_PAYMENT", "Payment", result.id);
-    return created(serialize(result));
+    logAudit(userId, "CREATE_PAYMENT_SERIES", "Payment", seriesId, { count: recurMonths });
+    return created(createdPayments.map(serialize));
   } catch (err) {
     return serverError(err);
   }
