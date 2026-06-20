@@ -65,12 +65,46 @@ export const POST = withAuth(async (userId, req) => {
     if (!parsed.success) return badRequest("Geçersiz veri", parsed.error.flatten());
 
     const { date, ...rest } = parsed.data;
-    const tx = await prisma.transaction.create({
-      data: { userId, date: new Date(date), ...rest },
+
+    // İşlem ile Ödeme/Takvim entegrasyonu:
+    // Her yeni işlem için otomatik olarak "ödenmiş" bir Ödeme kaydı oluşturulur,
+    // böylece Takvim ve Ödemeler sayfasında da görünür.
+    const result = await prisma.$transaction(async (tx) => {
+      const transaction = await tx.transaction.create({
+        data: { userId, date: new Date(date), ...rest },
+      });
+
+      // Sadece gider işlemleri için otomatik ödeme kaydı oluştur
+      // (gelir işlemleri "ödeme" mantığına girmez)
+      if (rest.type === "EXPENSE") {
+        const payment = await tx.payment.create({
+          data: {
+            userId,
+            name:        rest.description,
+            description: `İşlemler sekmesinden otomatik oluşturuldu`,
+            amount:      rest.amount,
+            dueDate:     new Date(date),
+            startDate:   new Date(date),
+            category:    rest.category,
+            status:      "PAID",
+            completed:   true,
+            completedAt: new Date(),
+          },
+        });
+
+        await tx.transaction.update({
+          where: { id: transaction.id },
+          data:  { linkedPaymentId: payment.id },
+        });
+
+        return { ...transaction, linkedPaymentId: payment.id };
+      }
+
+      return transaction;
     });
 
-    logAudit(userId, "CREATE_TRANSACTION", "Transaction", tx.id, { amount: rest.amount, type: rest.type }, req);
-    return created(serialize(tx));
+    logAudit(userId, "CREATE_TRANSACTION", "Transaction", result.id, { amount: rest.amount, type: rest.type }, req);
+    return created(serialize(result));
   } catch (err) {
     return serverError(err);
   }
