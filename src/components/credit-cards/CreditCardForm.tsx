@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CARD_COLORS, CARD_NETWORK_LABELS } from "@/constants";
+import { BANKS, BANK_LABELS, BANK_CARD_BRANDS, CARD_BRAND_LABELS } from "@/constants/banks";
+import { BankLogo } from "@/components/ui/bank-logo";
 import type { CreditCard, CreateCreditCardInput, CardNetwork } from "@/types";
 
 type Schema = z.infer<typeof createCreditCardSchema>;
@@ -21,11 +23,14 @@ export default function CreditCardForm({ initial, onSave, onClose, loading }: Pr
       network: initial?.network ?? "VISA", creditLimit: initial?.creditLimit ?? undefined,
       currentBalance: initial?.currentBalance ?? 0, statementDate: initial?.statementDate ?? 15,
       dueDate: initial?.dueDate ?? 3, color: initial?.color ?? "#6366f1",
+      bankName: (initial as never)?.bankName ?? undefined,
+      cardBrand: (initial as never)?.cardBrand ?? undefined,
     },
   });
 
   const networks: CardNetwork[] = ["VISA", "MASTERCARD", "AMEX", "TROY", "OTHER"];
-  const selectedColor = form.watch("color");
+  const selectedBank = form.watch("bankName");
+  const availableBrands = selectedBank ? BANK_CARD_BRANDS[selectedBank as never] ?? [] : [];
 
   return (
     <Form {...form}>
@@ -38,6 +43,42 @@ export default function CreditCardForm({ initial, onSave, onClose, loading }: Pr
               <FormMessage />
             </FormItem>
           )} />
+
+          <FormField control={form.control} name="bankName" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Banka</FormLabel>
+              <Select onValueChange={(v) => { field.onChange(v); form.setValue("cardBrand" as never, undefined as never); }} defaultValue={field.value ?? ""}>
+                <FormControl><SelectTrigger><SelectValue placeholder="Banka seçin" /></SelectTrigger></FormControl>
+                <SelectContent>
+                  {BANKS.map((b) => (
+                    <SelectItem key={b} value={b}>
+                      <span className="flex items-center gap-2">
+                        <BankLogo bank={b} size={16} />
+                        {BANK_LABELS[b]}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )} />
+
+          {selectedBank && availableBrands.length > 0 && (
+            <FormField control={form.control} name="cardBrand" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Kart Markası</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Marka seçin" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    {availableBrands.map((brand) => (
+                      <SelectItem key={brand} value={brand}>{CARD_BRAND_LABELS[brand]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )} />
+          )}
+
           <FormField control={form.control} name="lastFourDigits" render={({ field }) => (
             <FormItem>
               <FormLabel>Son 4 Hane</FormLabel>
