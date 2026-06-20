@@ -31,3 +31,31 @@ export const BANKS: BankName[] = [
 export function getBankLogoUrl(bank: BankName): string {
   return `https://www.google.com/s2/favicons?sz=64&domain=${BANK_DOMAINS[bank]}`;
 }
+export type CardBrand =
+  | "ING_KART" | "BONUS" | "MILES_SMILES" | "BANKKART"
+  | "VAKIF_WORLD" | "WORLD" | "WORLD_GOLD" | "CARDFINANS"
+  | "AXESS" | "WINGS";
+
+export const CARD_BRAND_LABELS: Record<CardBrand, string> = {
+  ING_KART:     "ING Kart",
+  BONUS:        "Bonus",
+  MILES_SMILES: "Miles&Smiles",
+  BANKKART:     "Bankkart",
+  VAKIF_WORLD:  "World (VakıfBank)",
+  WORLD:        "World",
+  WORLD_GOLD:   "World Gold",
+  CARDFINANS:   "CardFinans",
+  AXESS:        "Axess",
+  WINGS:        "Wings",
+};
+
+// Her bankaya bağlı kart markaları
+export const BANK_CARD_BRANDS: Record<BankName, CardBrand[]> = {
+  ING:         ["ING_KART"],
+  GARANTI:     ["BONUS", "MILES_SMILES"],
+  ZIRAAT:      ["BANKKART"],
+  VAKIFBANK:   ["VAKIF_WORLD"],
+  YAPI_KREDI:  ["WORLD", "WORLD_GOLD"],
+  FINANSBANK:  ["CARDFINANS"],
+  AKBANK:      ["AXESS", "WINGS"],
+};
