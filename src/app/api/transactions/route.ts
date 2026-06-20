@@ -7,6 +7,7 @@ import { Decimal } from "@prisma/client/runtime/library";
 function serialize(t: {
   id: string; userId: string; date: Date; description: string; category: string;
   amount: Decimal; type: string; notes: string | null; creditCardId: string | null;
+  bankName: string | null;
   createdAt: Date; updatedAt: Date;
 }) {
   return {
@@ -66,16 +67,11 @@ export const POST = withAuth(async (userId, req) => {
 
     const { date, ...rest } = parsed.data;
 
-    // İşlem ile Ödeme/Takvim entegrasyonu:
-    // Her yeni işlem için otomatik olarak "ödenmiş" bir Ödeme kaydı oluşturulur,
-    // böylece Takvim ve Ödemeler sayfasında da görünür.
     const result = await prisma.$transaction(async (tx) => {
       const transaction = await tx.transaction.create({
         data: { userId, date: new Date(date), ...rest },
       });
 
-      // Sadece gider işlemleri için otomatik ödeme kaydı oluştur
-      // (gelir işlemleri "ödeme" mantığına girmez)
       if (rest.type === "EXPENSE") {
         const payment = await tx.payment.create({
           data: {
@@ -89,6 +85,7 @@ export const POST = withAuth(async (userId, req) => {
             status:      "PAID",
             completed:   true,
             completedAt: new Date(),
+            bankName:    rest.bankName ?? null,
           },
         });
 
