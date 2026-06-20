@@ -28,3 +28,6 @@ export const BANKS: BankName[] = [
 ];
 
 // Google'ın herkese açık favicon servisi
+export function getBankLogoUrl(bank: BankName): string {
+  return `https://www.google.com/s2/favicons?sz=64&domain=${BANK_DOMAINS[bank]}`;
+}
