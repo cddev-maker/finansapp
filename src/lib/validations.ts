@@ -50,8 +50,8 @@ export const createTransactionSchema = z.object({
   type:         z.enum(["INCOME", "EXPENSE"]),
   notes:        z.string().max(500).optional(),
   creditCardId: z.string().optional().nullable(),
+  bankName:     z.enum(["ING","GARANTI","ZIRAAT","VAKIFBANK","YAPI_KREDI","FINANSBANK","AKBANK"]).optional().nullable(),
 });
-
 export const updateTransactionSchema = createTransactionSchema.partial().extend({
   id: z.string().cuid(),
 });
@@ -67,12 +67,12 @@ export const createPaymentSchema = z.object({
   amount:      z.number().positive("Tutar sıfırdan büyük olmalı"),
   dueDate:     isoDate,
   startDate:   isoDate,
- endDate: z.union([isoDate, z.literal(""), z.null()]).optional(),
+  endDate:     isoDate.optional().nullable(),
   category:    categoryEnum,
   status:      z.enum(["PENDING","PAID","OVERDUE","CANCELLED"]).optional(),
   notes:       z.string().max(500).optional(),
+  bankName:    z.enum(["ING","GARANTI","ZIRAAT","VAKIFBANK","YAPI_KREDI","FINANSBANK","AKBANK"]).optional().nullable(),
 });
-
 export const updatePaymentSchema = createPaymentSchema.partial().extend({
   id:          z.string().cuid(),
   completed:   z.boolean().optional(),
