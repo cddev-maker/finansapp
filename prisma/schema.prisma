@@ -28,6 +28,16 @@ enum PaymentStatus {
   CANCELLED
 }
 
+
+enum BankName {
+  ING
+  GARANTI
+  ZIRAAT
+  VAKIFBANK
+  YAPI_KREDI
+  FINANSBANK
+  AKBANK
+}
 enum Category {
   SALARY
   RENT
@@ -178,6 +188,7 @@ model Transaction {
   amount         Decimal         @db.Decimal(14, 2)
   type           TransactionType
   notes          String?         @db.VarChar(500)
+   bankName     BankName?
   creditCardId   String?
   linkedPaymentId String?        @unique
   createdAt      DateTime        @default(now())
@@ -214,6 +225,7 @@ model Payment {
   reminderSentAt DateTime?  // tracks last reminder email
 seriesId       String?
   notes       String?       @db.VarChar(500)
+   bankName    BankName?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
