@@ -3,7 +3,7 @@ import { createCreditCardSchema } from "@/lib/validations";
 import { withAuth, ok, created, badRequest, serverError, logAudit } from "@/lib/api-helpers";
 import { Decimal } from "@prisma/client/runtime/library";
 
-function serialize(c: { id: string; userId: string; name: string; lastFourDigits: string; network: string; creditLimit: Decimal; currentBalance: Decimal; statementDate: number; dueDate: number; color: string; isActive: boolean; createdAt: Date; updatedAt: Date }) {
+function serialize(c: { id: string; userId: string; name: string; lastFourDigits: string; network: string; creditLimit: Decimal; currentBalance: Decimal; statementDate: number; dueDate: number; bankName: string | null; cardBrand: string | null; color: string; isActive: boolean; createdAt: Date; updatedAt: Date }) {
   const creditLimit    = Number(c.creditLimit);
   const currentBalance = Number(c.currentBalance);
   return {
