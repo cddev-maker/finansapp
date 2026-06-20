@@ -212,6 +212,7 @@ model Payment {
   completed   Boolean       @default(false)
   completedAt DateTime?
   reminderSentAt DateTime?  // tracks last reminder email
+seriesId       String?
   notes       String?       @db.VarChar(500)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
