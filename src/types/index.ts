@@ -59,10 +59,12 @@ export interface CreditCard {
   currentBalance:  number;
   statementDate:   number;
   dueDate:         number;
+  bankName?:       string | null;
+  cardBrand?:      string | null;
   color:           string;
   isActive:        boolean;
-  availableLimit?: number;   // computed: creditLimit - currentBalance
-  utilizationPct?: number;   // computed: (currentBalance / creditLimit) * 100
+  availableLimit?: number;
+  utilizationPct?: number;
   statements?:     CardStatement[];
   createdAt:       string;
   updatedAt:       string;
