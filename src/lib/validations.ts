@@ -67,7 +67,7 @@ export const createPaymentSchema = z.object({
   amount:      z.number().positive("Tutar sıfırdan büyük olmalı"),
   dueDate:     isoDate,
   startDate:   isoDate,
-  endDate:     isoDate.optional().nullable(),
+ endDate: z.union([isoDate, z.literal(""), z.null()]).optional(),
   category:    categoryEnum,
   status:      z.enum(["PENDING","PAID","OVERDUE","CANCELLED"]).optional(),
   notes:       z.string().max(500).optional(),
