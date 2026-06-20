@@ -24,6 +24,7 @@ export interface Transaction {
   notes?:       string | null;
   creditCardId?: string | null;
   creditCard?:  CreditCard | null;
+  bankName?:    string | null;
   createdAt:    string;
   updatedAt:    string;
 }
@@ -43,6 +44,7 @@ export interface Payment {
   completedAt?:    string | null;
   reminderSentAt?: string | null;
   notes?:          string | null;
+  bankName?:       string | null;
   createdAt:       string;
   updatedAt:       string;
 }
