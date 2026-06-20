@@ -181,8 +181,9 @@ export function transactionsToCSV(txs: Transaction[]): string {
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
-export function buildSearchParams(obj: Record<string, string | number | boolean | undefined | null>): URLSearchParams {
+export function buildSearchParams(obj?: Record<string, string | number | boolean | undefined | null>): URLSearchParams {
   const p = new URLSearchParams();
+  if (!obj) return p;
   Object.entries(obj).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== "") p.set(k, String(v));
   });
