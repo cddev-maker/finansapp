@@ -45,6 +45,12 @@ export const DELETE = withAuth(async (userId, req, params) => {
   const id = params?.id;
   if (!id) return badRequest("ID gerekli");
 
+  // Bağlı bir Ödeme varsa, onu da sil
+  const tx = await prisma.transaction.findFirst({ where: { id, userId } });
+  if (tx?.linkedPaymentId) {
+    await prisma.payment.deleteMany({ where: { id: tx.linkedPaymentId, userId } });
+  }
+
   const deleted = await prisma.transaction.deleteMany({ where: { id, userId } });
   if (deleted.count === 0) return notFound("İşlem");
 
