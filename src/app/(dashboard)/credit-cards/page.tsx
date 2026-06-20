@@ -16,6 +16,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import CreditCardForm from "@/components/credit-cards/CreditCardForm";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CARD_NETWORK_LABELS } from "@/constants";
+import { BankLogo } from "@/components/ui/bank-logo";
+import { CARD_BRAND_LABELS, type BankName, type CardBrand } from "@/constants/banks";
 import type { CreditCard, CreateCreditCardInput } from "@/types";
 
 export default function CreditCardsPage() {
@@ -78,18 +80,20 @@ export default function CreditCardsPage() {
           {cards.map((card) => (
             <div key={card.id} className="relative group rounded-2xl overflow-hidden shadow-lg" style={{ background: `linear-gradient(135deg, ${card.color}, ${card.color}99)` }}>
               {/* Card face */}
-              <div className="p-6 text-white">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <p className="text-xs font-semibold opacity-80 uppercase tracking-wider">{CARD_NETWORK_LABELS[card.network]}</p>
-                    <p className="font-bold text-lg mt-0.5">{card.name}</p>
-                  </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => { setEditCard(card); setShowForm(true); }} className="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => setConfirmId(card.id)} className="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                  </div>
-                </div>
-
+<div className="flex items-start justify-between mb-6">
+  <div>
+    <div className="flex items-center gap-1.5 mb-1">
+      {(card as never as { bankName?: string }).bankName && (
+        <BankLogo bank={(card as never as { bankName: BankName }).bankName} size={16} />
+      )}
+      <p className="text-xs font-semibold opacity-80 uppercase tracking-wider">
+        {(card as never as { cardBrand?: string }).cardBrand
+          ? CARD_BRAND_LABELS[(card as never as { cardBrand: CardBrand }).cardBrand]
+          : CARD_NETWORK_LABELS[card.network]}
+      </p>
+    </div>
+    <p className="font-bold text-lg mt-0.5">{card.name}</p>
+  </div>
                 <p className="font-mono text-lg tracking-[0.2em] opacity-80">•••• •••• •••• {card.lastFourDigits}</p>
 
                 <div className="mt-4 space-y-2">
