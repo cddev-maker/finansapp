@@ -21,12 +21,48 @@ export const PATCH = withAuth(async (userId, req, params) => {
     if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
     if (completedAt !== undefined) updateData.completedAt = completedAt ? new Date(completedAt) : null;
 
-    const count = await prisma.payment.updateMany({ where: { id, userId }, data: updateData });
-    if (count.count === 0) return notFound("Ödeme");
+    // Mevcut ödemeyi al (önceki durumunu bilmek için)
+    const existing = await prisma.payment.findFirst({ where: { id, userId } });
+    if (!existing) return notFound("Ödeme");
 
-    const updated = await prisma.payment.findUniqueOrThrow({ where: { id } });
+    const wasCompleted = existing.completed;
+    const willBeCompleted = rest.completed ?? wasCompleted;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const count = await tx.payment.updateMany({ where: { id, userId }, data: updateData });
+      if (count.count === 0) throw new Error("NOT_FOUND");
+
+      const updated = await tx.payment.findUniqueOrThrow({ where: { id } });
+
+      // Ödeme yeni "ödendi" oldu (önceden değildi) → otomatik İşlem oluştur
+      if (!wasCompleted && willBeCompleted) {
+        const linkedTx = await tx.transaction.findFirst({ where: { linkedPaymentId: id } });
+        if (!linkedTx) {
+          await tx.transaction.create({
+            data: {
+              userId,
+              date:        updated.dueDate,
+              description: updated.name,
+              category:    updated.category,
+              amount:      updated.amount,
+              type:        "EXPENSE",
+              notes:       "Ödemeler sekmesinden otomatik oluşturuldu",
+              linkedPaymentId: updated.id,
+            },
+          });
+        }
+      }
+
+      // Ödeme "ödendi" durumundan geri alındı → bağlı İşlemi sil
+      if (wasCompleted && !willBeCompleted) {
+        await tx.transaction.deleteMany({ where: { linkedPaymentId: id } });
+      }
+
+      return updated;
+    });
+
     logAudit(userId, "UPDATE_PAYMENT", "Payment", id);
-    return ok(serialize(updated));
+    return ok(serialize(result));
   } catch (err) {
     return serverError(err);
   }
@@ -34,6 +70,10 @@ export const PATCH = withAuth(async (userId, req, params) => {
 
 export const DELETE = withAuth(async (userId, req, params) => {
   const id = params?.id; if (!id) return badRequest("ID gerekli");
+
+  // Ödeme silinince bağlı İşlem de silinsin
+  await prisma.transaction.deleteMany({ where: { linkedPaymentId: id } });
+
   const deleted = await prisma.payment.deleteMany({ where: { id, userId } });
   if (deleted.count === 0) return notFound("Ödeme");
   logAudit(userId, "DELETE_PAYMENT", "Payment", id);
