@@ -35,23 +35,24 @@ export const PATCH = withAuth(async (userId, req, params) => {
       const updated = await tx.payment.findUniqueOrThrow({ where: { id } });
 
       // Ödeme yeni "ödendi" oldu (önceden değildi) → otomatik İşlem oluştur
-      if (!wasCompleted && willBeCompleted) {
-        const linkedTx = await tx.transaction.findFirst({ where: { linkedPaymentId: id } });
-        if (!linkedTx) {
-          await tx.transaction.create({
-            data: {
-              userId,
-              date:        updated.dueDate,
-              description: updated.name,
-              category:    updated.category,
-              amount:      updated.amount,
-              type:        "EXPENSE",
-              notes:       "Ödemeler sekmesinden otomatik oluşturuldu",
-              linkedPaymentId: updated.id,
-            },
-          });
-        }
-      }
+if (!wasCompleted && willBeCompleted) {
+  const linkedTx = await tx.transaction.findFirst({ where: { linkedPaymentId: id } });
+  if (!linkedTx) {
+    await tx.transaction.create({
+      data: {
+        userId,
+        date:        updated.dueDate,
+        description: updated.name,
+        category:    updated.category,
+        amount:      updated.amount,
+        type:        "EXPENSE",
+        notes:       "Ödemeler sekmesinden otomatik oluşturuldu",
+        linkedPaymentId: updated.id,
+        bankName:    updated.bankName,
+      },
+    });
+  }
+}
 
       // Ödeme "ödendi" durumundan geri alındı → bağlı İşlemi sil
       if (wasCompleted && !willBeCompleted) {
