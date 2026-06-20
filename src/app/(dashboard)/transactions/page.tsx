@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import TransactionForm from "@/components/transactions/TransactionForm";
 import { formatCurrency, formatDate, downloadFile, transactionsToCSV } from "@/lib/utils";
 import { CATEGORY_LABELS, CATEGORIES, MONTH_NAMES } from "@/constants";
+import { BankLogo } from "@/components/ui/bank-logo";
+import type { BankName } from "@/constants/banks";
 import type { Transaction, CreateTransactionInput, TransactionType } from "@/types";
 
 export default function TransactionsPage() {
@@ -59,18 +61,25 @@ export default function TransactionsPage() {
       header: "Tarih",
       cell: ({ row }) => <span className="text-sm whitespace-nowrap">{formatDate(row.original.date)}</span>,
     },
-    {
-      accessorKey: "description",
-      header: "Açıklama",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${row.original.type === "INCOME" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-500"}`}>
-            {row.original.type === "INCOME" ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+ {
+  accessorKey: "description",
+  header: "Açıklama",
+  cell: ({ row }) => (
+    <div className="flex items-center gap-2">
+      <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${row.original.type === "INCOME" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-500"}`}>
+        {row.original.type === "INCOME" ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+      </span>
+      <div className="flex flex-col">
+        <span className="text-sm font-medium truncate max-w-[200px]">{row.original.description}</span>
+        {(row.original as never as { bankName?: string }).bankName && (
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <BankLogo bank={(row.original as never as { bankName: BankName }).bankName} size={12} showName />
           </span>
-          <span className="text-sm font-medium truncate max-w-[200px]">{row.original.description}</span>
-        </div>
-      ),
-    },
+        )}
+      </div>
+    </div>
+  ),
+},
     {
       accessorKey: "category",
       header: "Kategori",
