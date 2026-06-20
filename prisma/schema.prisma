@@ -262,7 +262,6 @@ model CreditCard {
   currentBalance   Decimal     @db.Decimal(14, 2) @default(0)
   statementDate    Int         // day of month 1-31
   dueDate          Int         // day of month 1-31
-  dueDate          Int
   bankName         BankName?
   cardBrand        CardBrand?
   color            String      @default("#6366f1") // UI display color
