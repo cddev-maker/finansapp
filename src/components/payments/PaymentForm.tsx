@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,16 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CATEGORIES, CATEGORY_LABELS, PAYMENT_STATUS_LABELS } from "@/constants";
+import { BANKS, BANK_LABELS } from "@/constants/banks";
+import { BankLogo } from "@/components/ui/bank-logo";
 import type { Payment, CreatePaymentInput, PaymentStatus } from "@/types";
 
 type Schema = z.infer<typeof createPaymentSchema>;
 
-interface Props {
-  initial?: Payment;
-  onSave: (d: CreatePaymentInput & { recurMonths?: number }) => void;
-  onClose: () => void;
-  loading?: boolean;
-}
+interface Props { initial?: Payment; onSave: (d: CreatePaymentInput & { recurMonths?: number }) => void; onClose: () => void; loading?: boolean; }
+
+const BANK_CATEGORIES = ["CREDIT_CARD", "LOAN_PAYMENT"];
+
+import { useState } from "react";
 
 export default function PaymentForm({ initial, onSave, onClose, loading }: Props) {
   const today = new Date().toISOString().split("T")[0];
@@ -32,8 +32,12 @@ export default function PaymentForm({ initial, onSave, onClose, loading }: Props
       amount: initial?.amount ?? undefined, dueDate: initial?.dueDate ?? today,
       startDate: initial?.startDate ?? today, endDate: initial?.endDate ?? "",
       category: initial?.category ?? "OTHER", status: initial?.status ?? "PENDING",
+      bankName: (initial as never)?.bankName ?? undefined,
     },
   });
+
+  const category = form.watch("category");
+  const showBankSelect = BANK_CATEGORIES.includes(category);
 
   return (
     <Form {...form}>
@@ -82,6 +86,29 @@ export default function PaymentForm({ initial, onSave, onClose, loading }: Props
               </Select>
             </FormItem>
           )} />
+
+          {showBankSelect && (
+            <FormField control={form.control} name="bankName" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Banka</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Banka seçin" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    {BANKS.map((b) => (
+                      <SelectItem key={b} value={b}>
+                        <span className="flex items-center gap-2">
+                          <BankLogo bank={b} size={16} />
+                          {BANK_LABELS[b]}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+          )}
+
           <FormField control={form.control} name="status" render={({ field }) => (
             <FormItem>
               <FormLabel>Durum</FormLabel>
@@ -111,11 +138,6 @@ export default function PaymentForm({ initial, onSave, onClose, loading }: Props
                 <Input type="number" min={2} max={60} value={recurMonths} onChange={(e) => setRecurMonths(parseInt(e.target.value) || 12)} className="w-20" />
                 <span className="text-muted-foreground">ay</span>
               </div>
-            )}
-            {recurring && (
-              <p className="text-xs text-muted-foreground">
-                Aynı tutarla {recurMonths} ay için ayrı kayıtlar oluşturulacak. Her ayı sonradan ayrı ayrı düzenleyebilirsiniz.
-              </p>
             )}
           </div>
         )}
