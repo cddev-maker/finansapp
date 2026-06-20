@@ -49,19 +49,13 @@ export default function CreditCardForm({ initial, onSave, onClose, loading }: Pr
               <FormLabel>Banka</FormLabel>
               <Select onValueChange={(v) => { field.onChange(v); form.setValue("cardBrand" as never, undefined as never); }} defaultValue={field.value ?? ""}>
                 <FormControl><SelectTrigger><SelectValue placeholder="Banka seçin" /></SelectTrigger></FormControl>
-                <SelectContent>
-                  {BANKS.map((b) => (
-                    <SelectItem key={b} value={b}>
-                      <span className="flex items-center gap-2">
-                        <BankLogo bank={b} size={16} />
-                        {BANK_LABELS[b]}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormItem>
-          )} />
+              <SelectContent>
+  {BANKS.map((b) => (
+    <SelectItem key={b} value={b}>
+      {BANK_LABELS[b]}
+    </SelectItem>
+  ))}
+</SelectContent>
 
           {selectedBank && availableBrands.length > 0 && (
             <FormField control={form.control} name="cardBrand" render={({ field }) => (
