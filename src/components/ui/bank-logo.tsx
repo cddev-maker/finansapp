@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BANK_LABELS, getBankLogoUrl, type BankName } from "@/constants/banks";
 
 interface Props {
@@ -10,6 +10,20 @@ interface Props {
 
 export function BankLogo({ bank, size = 16, showName = false }: Props) {
   const [error, setError] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <span
+        className="inline-block rounded-sm bg-muted shrink-0"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
 
   return (
     <span className="inline-flex items-center gap-1.5">
