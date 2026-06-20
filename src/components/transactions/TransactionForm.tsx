@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreditCards } from "@/hooks/use-credit-cards";
 import { CATEGORIES, CATEGORY_LABELS } from "@/constants";
+import { BANKS, BANK_LABELS } from "@/constants/banks";
+import { BankLogo } from "@/components/ui/bank-logo";
 import type { Transaction, CreateTransactionInput } from "@/types";
 
 type Schema = z.infer<typeof createTransactionSchema>;
@@ -21,6 +23,8 @@ interface Props {
   onClose:  () => void;
   loading?: boolean;
 }
+
+const BANK_CATEGORIES = ["CREDIT_CARD", "LOAN_PAYMENT"];
 
 export default function TransactionForm({ initial, onSave, onClose, loading }: Props) {
   const { data: cards = [] } = useCreditCards();
@@ -36,10 +40,13 @@ export default function TransactionForm({ initial, onSave, onClose, loading }: P
       type:         initial?.type ?? "EXPENSE",
       notes:        initial?.notes ?? "",
       creditCardId: initial?.creditCardId ?? undefined,
+      bankName:     (initial as never)?.bankName ?? undefined,
     },
   });
 
   const txType = form.watch("type");
+  const category = form.watch("category");
+  const showBankSelect = BANK_CATEGORIES.includes(category);
 
   const onSubmit = (data: Schema) => {
     onSave({ ...data, amount: Number(data.amount) });
@@ -100,6 +107,28 @@ export default function TransactionForm({ initial, onSave, onClose, loading }: P
             <FormMessage />
           </FormItem>
         )} />
+
+        {showBankSelect && (
+          <FormField control={form.control} name="bankName" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Banka</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                <FormControl><SelectTrigger><SelectValue placeholder="Banka seçin" /></SelectTrigger></FormControl>
+                <SelectContent>
+                  {BANKS.map((b) => (
+                    <SelectItem key={b} value={b}>
+                      <span className="flex items-center gap-2">
+                        <BankLogo bank={b} size={16} />
+                        {BANK_LABELS[b]}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
+        )}
 
         {txType === "EXPENSE" && cards.length > 0 && (
           <FormField control={form.control} name="creditCardId" render={({ field }) => (
