@@ -9,8 +9,8 @@ export type Role            = "USER" | "ADMIN";
 export type Category =
   | "SALARY" | "RENT" | "GROCERIES" | "UTILITIES" | "FUEL"
   | "CREDIT_CARD" | "EDUCATION" | "HEALTHCARE" | "ENTERTAINMENT"
-  | "INVESTMENT" | "TRANSFER" | "OTHER";
-
+  | "INVESTMENT" | "TRANSFER" | "VEHICLE_MAINTENANCE"
+  | "BUILDING_DUES" | "DEBT" | "EXPENSE_PAYMENT" | "LOAN_PAYMENT" | "OTHER";
 // ─── Domain objects ───────────────────────────────────────────────────────────
 
 export interface Transaction {
