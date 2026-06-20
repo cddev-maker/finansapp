@@ -4,7 +4,7 @@ import { createPaymentSchema } from "@/lib/validations";
 import { withAuth, ok, created, badRequest, serverError, serializeDate, serializeDateTime, logAudit } from "@/lib/api-helpers";
 import { Decimal } from "@prisma/client/runtime/library";
 
-function serialize(p: { id: string; userId: string; name: string; description: string | null; amount: Decimal; dueDate: Date; startDate: Date; endDate: Date | null; category: string; status: string; completed: boolean; completedAt: Date | null; reminderSentAt: Date | null; notes: string | null; createdAt: Date; updatedAt: Date }) {
+function serialize(p: { id: string; userId: string; name: string; description: string | null; amount: Decimal; dueDate: Date; startDate: Date; endDate: Date | null; category: string; status: string; completed: boolean; completedAt: Date | null; reminderSentAt: Date | null; notes: string | null; bankName: string | null; createdAt: Date; updatedAt: Date }) {
   return {
     ...p,
     amount:       Number(p.amount),
@@ -50,15 +50,14 @@ export const GET = withAuth(async (userId, req) => {
 
 export const POST = withAuth(async (userId, req) => {
   try {
-    const body = await req.json();
+    const body   = await req.json();
     const { recurMonths, ...rawData } = body;
     const parsed = createPaymentSchema.safeParse(rawData);
     if (!parsed.success) return badRequest("Geçersiz veri", parsed.error.flatten());
 
-    const { dueDate, startDate, endDate, status, ...rest } = parsed.data;
+    const { dueDate, startDate, endDate, status, bankName, ...rest } = parsed.data;
     const isPaid = status === "PAID";
 
-    // ── Tekrarlama YOK: tek kayıt oluştur (mevcut davranış) ──────────────────
     if (!recurMonths || recurMonths < 2) {
       const result = await prisma.$transaction(async (tx) => {
         const payment = await tx.payment.create({
@@ -70,6 +69,7 @@ export const POST = withAuth(async (userId, req) => {
             status:    status ?? "PENDING",
             completed: isPaid,
             completedAt: isPaid ? new Date() : null,
+            bankName:  bankName ?? null,
             ...rest,
           },
         });
@@ -81,6 +81,7 @@ export const POST = withAuth(async (userId, req) => {
               category: rest.category, amount: rest.amount, type: "EXPENSE",
               notes: "Ödemeler sekmesinden otomatik oluşturuldu",
               linkedPaymentId: payment.id,
+              bankName: bankName ?? null,
             },
           });
         }
@@ -91,7 +92,6 @@ export const POST = withAuth(async (userId, req) => {
       return created(serialize(result));
     }
 
-    // ── Tekrarlama VAR: recurMonths kadar ayrı kayıt oluştur ─────────────────
     const seriesId = `series_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const baseDate = new Date(dueDate);
     const createdPayments = [];
@@ -110,12 +110,12 @@ export const POST = withAuth(async (userId, req) => {
           completed:  i === 0 ? isPaid : false,
           completedAt: i === 0 && isPaid ? new Date() : null,
           seriesId,
+          bankName:   bankName ?? null,
           ...rest,
         },
       });
       createdPayments.push(payment);
 
-      // Sadece ilk ay için, eğer ödendi işaretliyse İşlem de oluştur
       if (i === 0 && isPaid) {
         await prisma.transaction.create({
           data: {
@@ -123,6 +123,7 @@ export const POST = withAuth(async (userId, req) => {
             category: rest.category, amount: rest.amount, type: "EXPENSE",
             notes: "Ödemeler sekmesinden otomatik oluşturuldu",
             linkedPaymentId: payment.id,
+            bankName: bankName ?? null,
           },
         });
       }
