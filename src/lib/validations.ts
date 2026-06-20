@@ -93,6 +93,8 @@ export const createCreditCardSchema = z.object({
   statementDate:  z.number().int().min(1).max(31),
   dueDate:        z.number().int().min(1).max(31),
   color:          z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#6366f1"),
+  bankName:       z.enum(["ING","GARANTI","ZIRAAT","VAKIFBANK","YAPI_KREDI","FINANSBANK","AKBANK"]).optional().nullable(),
+  cardBrand:      z.enum(["ING_KART","BONUS","MILES_SMILES","BANKKART","VAKIF_WORLD","WORLD","WORLD_GOLD","CARDFINANS","AXESS","WINGS"]).optional().nullable(),
 });
 
 export const updateCreditCardSchema = createCreditCardSchema.partial().extend({
