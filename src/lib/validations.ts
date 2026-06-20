@@ -2,7 +2,8 @@ import { z } from "zod";
 
 const categoryEnum = z.enum([
   "SALARY","RENT","GROCERIES","UTILITIES","FUEL","CREDIT_CARD",
-  "EDUCATION","HEALTHCARE","ENTERTAINMENT","INVESTMENT","TRANSFER","OTHER",
+  "EDUCATION","HEALTHCARE","ENTERTAINMENT","INVESTMENT","TRANSFER",
+  "VEHICLE_MAINTENANCE","BUILDING_DUES","DEBT","EXPENSE_PAYMENT","LOAN_PAYMENT","OTHER",
 ]);
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Geçerli tarih girin (YYYY-MM-DD)");
