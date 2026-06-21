@@ -83,9 +83,11 @@ export default function CreditCardsPage() {
 <div className="flex items-start justify-between mb-6">
   <div>
     <div className="flex items-center gap-1.5 mb-1">
-      {card.bankName ? (
-        <BankLogo bank={card.bankName as BankName} size={16} />
-      ) : null}
+ {card.bankName ? (
+  <span className="bg-white rounded p-0.5 shrink-0">
+    <BankLogo bank={card.bankName as BankName} size={20} />
+  </span>
+) : null}
       <p className="text-xs font-semibold opacity-80 uppercase tracking-wider">
         {card.cardBrand
           ? CARD_BRAND_LABELS[card.cardBrand as CardBrand]
