@@ -198,9 +198,26 @@ export async function fetchTefasFundHistory(
 
 // ─── Unified price fetcher ────────────────────────────────────────────────────
 
+const TROY_OUNCE_IN_GRAMS = 31.1035;
+
+async function fetchGoldPriceTRY(): Promise<number | null> {
+  const [xauUsd, usdTry] = await Promise.all([
+    fetchTwelveDataPrice("XAU/USD"),
+    fetchTwelveDataPrice("USD/TRY"),
+  ]);
+
+  if (xauUsd === null || usdTry === null) return null;
+
+  // Ons fiyatını grama çevir, sonra TRY'ye çevir
+  return (xauUsd / TROY_OUNCE_IN_GRAMS) * usdTry;
+}
+
 export async function fetchCurrentPrice(type: string, symbol: string): Promise<number | null> {
   if (type === "FUND") {
     return fetchTefasFundPrice(symbol);
+  }
+  if (type === "GOLD") {
+    return fetchGoldPriceTRY();
   }
   const tdSymbol = toTwelveDataSymbol(type, symbol);
   return fetchTwelveDataPrice(tdSymbol);
