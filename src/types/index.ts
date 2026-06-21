@@ -251,3 +251,47 @@ export interface CreateBudgetInput {
 export interface UpdateBudgetInput extends Partial<CreateBudgetInput> {
   id: string;
 }
+// ─── Investments ──────────────────────────────────────────────────────────────
+
+export type InvestmentType = "STOCK_TR" | "STOCK_US" | "GOLD" | "CURRENCY" | "FUND";
+
+export interface Investment {
+  id:             string;
+  userId:         string;
+  type:           InvestmentType;
+  symbol:         string;
+  name:           string;
+  quantity:       number;
+  buyPrice:       number;
+  buyDate:        string;
+  currentPrice?:  number | null;
+  priceUpdatedAt?: string | null;
+  notes?:         string | null;
+  createdAt:      string;
+  updatedAt:      string;
+  // computed fields (API tarafında eklenir)
+  totalCost?:     number;
+  currentValue?:  number;
+  profitLoss?:    number;
+  profitLossPct?: number;
+}
+
+export interface CreateInvestmentInput {
+  type:      InvestmentType;
+  symbol:    string;
+  name:      string;
+  quantity:  number;
+  buyPrice:  number;
+  buyDate:   string;
+  notes?:    string;
+}
+
+export interface UpdateInvestmentInput extends Partial<CreateInvestmentInput> {
+  id: string;
+}
+
+export interface PriceHistoryPoint {
+  date:  string;
+  price: number;
+}
+
