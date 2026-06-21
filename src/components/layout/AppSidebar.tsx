@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, CreditCard, Receipt, Wallet,
   PieChart, BarChart3, Settings, HardDrive, Calendar,
-  ChevronLeft, ChevronRight, Sun, Moon,
+  ChevronLeft, ChevronRight, Sun, Moon, TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/hooks/use-store";
@@ -17,10 +17,12 @@ const NAV_ITEMS = [
   { href: "/payments",     label: "Ödemeler",           icon: Wallet },
   { href: "/calendar",     label: "Takvim",             icon: Calendar },
   { href: "/budgets",      label: "Bütçeler",           icon: PieChart },
+  { href: "/investments",  label: "Yatırımlarım",       icon: TrendingUp },
   { href: "/reports",      label: "Raporlar",           icon: BarChart3 },
   { href: "/backup",       label: "Veri Yedekleme",     icon: HardDrive },
   { href: "/settings",     label: "Ayarlar",            icon: Settings },
 ];
+
 export default function AppSidebar() {
   const pathname  = usePathname();
   const { darkMode, toggleDark, sidebarOpen, setSidebar } = useStore();
