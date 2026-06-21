@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import TransactionForm from "@/components/transactions/TransactionForm";
+import { InvestmentSummaryWidget } from "@/components/investments/InvestmentSummaryWidget";
 import { formatCurrency, formatDate, formatCompact, daysUntil, downloadFile, transactionsToCSV } from "@/lib/utils";
 import { MONTH_NAMES, MONTH_SHORT, CHART_COLORS, CATEGORY_LABELS } from "@/constants";
 import type { Transaction, CreateTransactionInput } from "@/types";
@@ -119,6 +120,9 @@ export default function DashboardPage() {
         <StatCard label="Aylık Gider"     value={formatCompact(summary?.monthlyExpense ?? 0)} color="red"    icon={<ArrowDownRight className="w-4 h-4" />} loading={summaryLoading} sub={MONTH_NAMES[viewMonth]} />
         <StatCard label="Ay Sonu Tahmini" value={formatCompact(summary?.forecastedBalance ?? 0)} color={(summary?.forecastedBalance ?? 0) >= 0 ? "blue" : "amber"} icon={<PiggyBank className="w-4 h-4" />} loading={summaryLoading} sub="Tahmini bakiye" />
       </div>
+
+      {/* Investment summary widget */}
+      <InvestmentSummaryWidget />
 
       {/* Budget alerts */}
       {alertBudgets.length > 0 && (
