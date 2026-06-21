@@ -2,7 +2,8 @@
  * prisma/seed.ts
  * Run:  npm run db:seed
  *
- * Creates a demo user + 12 months of realistic Turkish financial data.
+ * Creates/refreshes ONLY the demo user (demo@finansapp.dev).
+ * This script never touches any other user's account or data.
  */
 import {
   PrismaClient,
@@ -23,29 +24,40 @@ const d = (year: number, month: number, day: number) =>
 const rand = (min: number, max: number) =>
   Math.round(min + Math.random() * (max - min));
 
+const DEMO_EMAIL = "demo@finansapp.dev";
+
 // ─── main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log("🌱  Seeding FinansApp database…\n");
+  console.log("🌱  Seeding FinansApp demo account…\n");
 
-  // ── Wipe previous seed data ──────────────────────────────────────────────
-  await prisma.auditLog.deleteMany();
-  await prisma.cardStatement.deleteMany();
-  await prisma.budget.deleteMany();
-  await prisma.transaction.deleteMany();
-  await prisma.payment.deleteMany();
-  await prisma.creditCard.deleteMany();
-  await prisma.userSettings.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.account.deleteMany();
-  await prisma.user.deleteMany();
+  // ── Wipe previous DEMO data only (never touches other users) ────────────
+  const existingDemo = await prisma.user.findUnique({
+    where: { email: DEMO_EMAIL },
+    select: { id: true },
+  });
+
+  if (existingDemo) {
+    const demoUserId = existingDemo.id;
+    await prisma.auditLog.deleteMany({ where: { userId: demoUserId } });
+    await prisma.cardStatement.deleteMany({ where: { creditCard: { userId: demoUserId } } });
+    await prisma.budget.deleteMany({ where: { userId: demoUserId } });
+    await prisma.transaction.deleteMany({ where: { userId: demoUserId } });
+    await prisma.payment.deleteMany({ where: { userId: demoUserId } });
+    await prisma.creditCard.deleteMany({ where: { userId: demoUserId } });
+    await prisma.userSettings.deleteMany({ where: { userId: demoUserId } });
+    await prisma.session.deleteMany({ where: { userId: demoUserId } });
+    await prisma.account.deleteMany({ where: { userId: demoUserId } });
+    await prisma.user.delete({ where: { id: demoUserId } });
+    console.log("   ↻  Önceki demo verisi temizlendi (diğer kullanıcılara dokunulmadı)");
+  }
 
   // ── Demo user ────────────────────────────────────────────────────────────
   const passwordHash = await bcrypt.hash("Demo1234!", 12);
 
   const user = await prisma.user.create({
     data: {
-      email:    "demo@finansapp.dev",
+      email:    DEMO_EMAIL,
       name:     "Lara Demirel",
       password: passwordHash,
       role:     "USER",
@@ -94,7 +106,7 @@ async function main() {
       { userId: user.id, date: d(yr, mo, 20), description: "Sağlık Sigortası",     category: Category.HEALTHCARE,    amount: 1800,             type: TransactionType.EXPENSE },
       { userId: user.id, date: d(yr, mo, 15), description: "Netflix & Spotify",    category: Category.ENTERTAINMENT, amount: 350,              type: TransactionType.EXPENSE, bankName: "GARANTI" },
 
-      // ── Credit card payments (no CreditCard table — bank info on transaction only) ──
+      // ── Credit card payments (bank info on transaction only) ─────────────
       { userId: user.id, date: d(yr, mo, 3),  description: "Kredi Kartı Ödemesi (Garanti Bonus)",   category: Category.CREDIT_CARD, amount: rand(2500, 8500), type: TransactionType.EXPENSE, bankName: "GARANTI" },
       { userId: user.id, date: d(yr, mo, 8),  description: "Kredi Kartı Ödemesi (Akbank Axess)",    category: Category.CREDIT_CARD, amount: rand(1000, 4500), type: TransactionType.EXPENSE, bankName: "AKBANK" },
       { userId: user.id, date: d(yr, mo, 28), description: "Kredi Kartı Ödemesi (Yapı Kredi World)", category: Category.CREDIT_CARD, amount: rand(1500, 5400), type: TransactionType.EXPENSE, bankName: "YAPI_KREDI" },
@@ -105,8 +117,8 @@ async function main() {
   console.log(`   ✔  ${txRows.length} transactions created`);
 
   // ── Scheduled payments — 12-month recurring series + one-off items ──────
-  const y           = now.getFullYear();
-  const mo0         = now.getMonth();
+  const y     = now.getFullYear();
+  const mo0   = now.getMonth();
   const seriesRent    = `series_rent_${Date.now()}`;
   const seriesGaranti = `series_garanti_${Date.now()}`;
   const seriesAkbank  = `series_akbank_${Date.now()}`;
@@ -161,12 +173,12 @@ async function main() {
 
   // ── One-off / shorter payments ────────────────────────────────────────────
   paymentRows.push(
-    { userId: user.id, name: "İnternet",        description: "Fiber 1 Gbps",          amount: 450,   dueDate: d(y, mo0, 10), startDate: d(2024, 0, 10), category: Category.UTILITIES,     status: PaymentStatus.PAID,    completed: true, completedAt: new Date() },
-    { userId: user.id, name: "Spor Salonu",     description: "Aylık üyelik",          amount: 900,   dueDate: d(y, mo0, 1),  startDate: d(2024, 0, 1),  category: Category.HEALTHCARE,    status: PaymentStatus.OVERDUE, completed: false },
-    { userId: user.id, name: "Netflix",         description: "Premium plan",          amount: 189,   dueDate: d(y, mo0, 15), startDate: d(2023, 5, 15), endDate: d(2026, 5, 15), category: Category.ENTERTAINMENT, status: PaymentStatus.PENDING, completed: false },
-    { userId: user.id, name: "Araç Sigortası",  description: "Yıllık kasko + trafik", amount: 12500, dueDate: d(y, mo0, 20), startDate: d(2024, 2, 20), endDate: d(2025, 2, 20), category: Category.OTHER, status: PaymentStatus.PENDING, completed: false },
-    { userId: user.id, name: "BES (Emeklilik)", description: "Bireysel emeklilik",    amount: 2500,  dueDate: d(y, mo0, 2),  startDate: d(2021, 0, 2),  endDate: d(2045, 0, 2),  category: Category.INVESTMENT,    status: PaymentStatus.PAID,    completed: true, completedAt: new Date() },
-    { userId: user.id, name: "Çocuk Okul Ücreti", description: "Aylık taksit",        amount: 3500,  dueDate: d(y, mo0, 25), startDate: d(2024, 8, 1),  endDate: d(2025, 5, 30), category: Category.EDUCATION,     status: PaymentStatus.PENDING, completed: false },
+    { userId: user.id, name: "İnternet",          description: "Fiber 1 Gbps",          amount: 450,   dueDate: d(y, mo0, 10), startDate: d(2024, 0, 10), category: Category.UTILITIES,     status: PaymentStatus.PAID,    completed: true, completedAt: new Date() },
+    { userId: user.id, name: "Spor Salonu",       description: "Aylık üyelik",          amount: 900,   dueDate: d(y, mo0, 1),  startDate: d(2024, 0, 1),  category: Category.HEALTHCARE,    status: PaymentStatus.OVERDUE, completed: false },
+    { userId: user.id, name: "Netflix",           description: "Premium plan",          amount: 189,   dueDate: d(y, mo0, 15), startDate: d(2023, 5, 15), endDate: d(2026, 5, 15), category: Category.ENTERTAINMENT, status: PaymentStatus.PENDING, completed: false },
+    { userId: user.id, name: "Araç Sigortası",    description: "Yıllık kasko + trafik", amount: 12500, dueDate: d(y, mo0, 20), startDate: d(2024, 2, 20), endDate: d(2025, 2, 20), category: Category.OTHER, status: PaymentStatus.PENDING, completed: false },
+    { userId: user.id, name: "BES (Emeklilik)",   description: "Bireysel emeklilik",    amount: 2500,  dueDate: d(y, mo0, 2),  startDate: d(2021, 0, 2),  endDate: d(2045, 0, 2),  category: Category.INVESTMENT,    status: PaymentStatus.PAID,    completed: true, completedAt: new Date() },
+    { userId: user.id, name: "Çocuk Okul Ücreti", description: "Aylık taksit",          amount: 3500,  dueDate: d(y, mo0, 25), startDate: d(2024, 8, 1),  endDate: d(2025, 5, 30), category: Category.EDUCATION,     status: PaymentStatus.PENDING, completed: false },
   );
 
   await prisma.payment.createMany({ data: paymentRows });
@@ -192,7 +204,7 @@ async function main() {
 
   console.log(`   ✔  9 budgets created`);
 
-  // ── Audit log entries ─────────────────────────────────────────────────────
+  // ── Audit log ──────────────────────────────────────────────────────────────
   await prisma.auditLog.create({
     data: { userId: user.id, action: "USER_REGISTER", entityType: "User", entityId: user.id, metadata: { email: user.email } },
   });
