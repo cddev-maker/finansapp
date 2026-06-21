@@ -135,3 +135,22 @@ export const updateSettingsSchema = z.object({
 });
 
 export type UpdateSettingsSchema = z.infer<typeof updateSettingsSchema>;
+
+// ─── Investment ───────────────────────────────────────────────────────────────
+
+export const createInvestmentSchema = z.object({
+  type:     z.enum(["STOCK_TR", "STOCK_US", "GOLD", "CURRENCY", "FUND"]),
+  symbol:   z.string().min(1, "Sembol gerekli").max(50),
+  name:     z.string().min(1, "Ad gerekli").max(150),
+  quantity: z.number().positive("Miktar sıfırdan büyük olmalı"),
+  buyPrice: z.number().positive("Alım fiyatı sıfırdan büyük olmalı"),
+  buyDate:  isoDate,
+  notes:    z.string().max(500).optional(),
+});
+
+export const updateInvestmentSchema = createInvestmentSchema.partial().extend({
+  id: z.string().cuid(),
+});
+
+export type CreateInvestmentSchema = z.infer<typeof createInvestmentSchema>;
+export type UpdateInvestmentSchema = z.infer<typeof updateInvestmentSchema>;
