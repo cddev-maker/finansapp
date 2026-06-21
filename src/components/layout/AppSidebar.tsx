@@ -16,13 +16,11 @@ const NAV_ITEMS = [
   { href: "/transactions", label: "İşlemler",           icon: Receipt },
   { href: "/payments",     label: "Ödemeler",           icon: Wallet },
   { href: "/calendar",     label: "Takvim",             icon: Calendar },
-  { href: "/credit-cards", label: "Kredi Kartları",     icon: CreditCard },
   { href: "/budgets",      label: "Bütçeler",           icon: PieChart },
   { href: "/reports",      label: "Raporlar",           icon: BarChart3 },
   { href: "/backup",       label: "Veri Yedekleme",     icon: HardDrive },
   { href: "/settings",     label: "Ayarlar",            icon: Settings },
 ];
-
 export default function AppSidebar() {
   const pathname  = usePathname();
   const { darkMode, toggleDark, sidebarOpen, setSidebar } = useStore();
