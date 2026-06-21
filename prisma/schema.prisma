@@ -28,7 +28,6 @@ enum PaymentStatus {
   CANCELLED
 }
 
-
 enum BankName {
   ING
   GARANTI
@@ -38,6 +37,7 @@ enum BankName {
   FINANSBANK
   AKBANK
 }
+
 enum CardBrand {
   ING_KART
   BONUS
@@ -50,6 +50,7 @@ enum CardBrand {
   AXESS
   WINGS
 }
+
 enum Category {
   SALARY
   RENT
@@ -83,6 +84,14 @@ enum CardNetwork {
   OTHER
 }
 
+enum InvestmentType {
+  STOCK_TR
+  STOCK_US
+  GOLD
+  CURRENCY
+  FUND
+}
+
 enum Role {
   USER
   ADMIN
@@ -110,6 +119,7 @@ model User {
   payments     Payment[]
   creditCards  CreditCard[]
   budgets      Budget[]
+  investments  Investment[]
 
   @@index([email])
   @@map("users")
@@ -192,23 +202,23 @@ model UserSettings {
 
 /// A single financial movement (income or expense).
 model Transaction {
-  id             String          @id @default(cuid())
-  userId         String
-  date           DateTime        @db.Date
-  description    String          @db.VarChar(200)
-  category       Category
-  amount         Decimal         @db.Decimal(14, 2)
-  type           TransactionType
-  notes          String?         @db.VarChar(500)
-   bankName     BankName?
-  creditCardId   String?
-  linkedPaymentId String?        @unique
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id              String          @id @default(cuid())
+  userId          String
+  date            DateTime        @db.Date
+  description     String          @db.VarChar(200)
+  category        Category
+  amount          Decimal         @db.Decimal(14, 2)
+  type            TransactionType
+  notes           String?         @db.VarChar(500)
+  bankName        BankName?
+  creditCardId    String?
+  linkedPaymentId String?         @unique
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  creditCard CreditCard? @relation(fields: [creditCardId], references: [id], onDelete: SetNull)
-  linkedPayment Payment? @relation(fields: [linkedPaymentId], references: [id], onDelete: SetNull)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creditCard    CreditCard? @relation(fields: [creditCardId], references: [id], onDelete: SetNull)
+  linkedPayment Payment?    @relation(fields: [linkedPaymentId], references: [id], onDelete: SetNull)
 
   @@index([userId, date])
   @@index([userId, type])
@@ -222,26 +232,26 @@ model Transaction {
 
 /// A recurring or one-off scheduled payment.
 model Payment {
-  id          String        @id @default(cuid())
-  userId      String
-  name        String        @db.VarChar(100)
-  description String?       @db.VarChar(300)
-  amount      Decimal       @db.Decimal(14, 2)
-  dueDate     DateTime      @db.Date
-  startDate   DateTime      @db.Date
-  endDate     DateTime?     @db.Date
-  category    Category
-  status      PaymentStatus @default(PENDING)
-  completed   Boolean       @default(false)
-  completedAt DateTime?
-  reminderSentAt DateTime?  // tracks last reminder email
-seriesId       String?
-  notes       String?       @db.VarChar(500)
-   bankName    BankName?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             String        @id @default(cuid())
+  userId         String
+  name           String        @db.VarChar(100)
+  description    String?       @db.VarChar(300)
+  amount         Decimal       @db.Decimal(14, 2)
+  dueDate        DateTime      @db.Date
+  startDate      DateTime      @db.Date
+  endDate        DateTime?     @db.Date
+  category       Category
+  status         PaymentStatus @default(PENDING)
+  completed      Boolean       @default(false)
+  completedAt    DateTime?
+  reminderSentAt DateTime?     // tracks last reminder email
+  seriesId       String?
+  notes          String?       @db.VarChar(500)
+  bankName       BankName?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   linkedTransaction Transaction?
 
   @@index([userId, status])
@@ -253,23 +263,23 @@ seriesId       String?
 // ─── Credit Cards ─────────────────────────────────────────────────────────────
 
 model CreditCard {
-  id               String      @id @default(cuid())
-  userId           String
-  name             String      @db.VarChar(100)  // e.g. "Garanti Bonus"
-  lastFourDigits   String      @db.Char(4)
-  network          CardNetwork @default(VISA)
-  creditLimit      Decimal     @db.Decimal(14, 2)
-  currentBalance   Decimal     @db.Decimal(14, 2) @default(0)
-  statementDate    Int         // day of month 1-31
-  dueDate          Int         // day of month 1-31
-  bankName         BankName?
-  cardBrand        CardBrand?
-  color            String      @default("#6366f1") // UI display color
-  isActive         Boolean     @default(true)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  id              String      @id @default(cuid())
+  userId          String
+  name            String      @db.VarChar(100)  // e.g. "Garanti Bonus"
+  lastFourDigits  String      @db.Char(4)
+  network         CardNetwork @default(VISA)
+  creditLimit     Decimal     @db.Decimal(14, 2)
+  currentBalance  Decimal     @db.Decimal(14, 2) @default(0)
+  statementDate   Int         // day of month 1-31
+  dueDate         Int         // day of month 1-31
+  bankName        BankName?
+  cardBrand       CardBrand?
+  color           String      @default("#6366f1") // UI display color
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
   statements   CardStatement[]
 
@@ -301,18 +311,18 @@ model CardStatement {
 // ─── Budgets ──────────────────────────────────────────────────────────────────
 
 model Budget {
-  id           String       @id @default(cuid())
-  userId       String
-  name         String       @db.VarChar(100)
-  category     Category
-  amount       Decimal      @db.Decimal(14, 2)
-  period       BudgetPeriod @default(MONTHLY)
-  year         Int
-  month        Int?         // null for yearly budgets; 0-indexed
-  alertAt      Int          @default(80) // alert when % spending exceeds this
-  color        String       @default("#6366f1")
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id        String       @id @default(cuid())
+  userId    String
+  name      String       @db.VarChar(100)
+  category  Category
+  amount    Decimal      @db.Decimal(14, 2)
+  period    BudgetPeriod @default(MONTHLY)
+  year      Int
+  month     Int?         // null for yearly budgets; 0-indexed
+  alertAt   Int          @default(80) // alert when % spending exceeds this
+  color     String       @default("#6366f1")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -337,4 +347,41 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([entityType, entityId])
   @@map("audit_logs")
+}
+
+// ─── Investments ──────────────────────────────────────────────────────────────
+
+model Investment {
+  id             String         @id @default(cuid())
+  userId         String
+  type           InvestmentType
+  symbol         String         @db.VarChar(50)   // e.g. THYAO, AAPL, XAU/TRY, USD/TRY, fund code
+  name           String         @db.VarChar(150)  // display name, e.g. "Türk Hava Yolları"
+  quantity       Decimal        @db.Decimal(18, 6) // shares / grams / units
+  buyPrice       Decimal        @db.Decimal(18, 4) // unit purchase price
+  buyDate        DateTime       @db.Date
+  currentPrice   Decimal?       @db.Decimal(18, 4) // last fetched price
+  priceUpdatedAt DateTime?
+  notes          String?        @db.VarChar(500)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, type])
+  @@index([symbol])
+  @@map("investments")
+}
+
+model PriceHistory {
+  id        String   @id @default(cuid())
+  symbol    String   @db.VarChar(50)
+  price     Decimal  @db.Decimal(18, 4)
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@unique([symbol, date])
+  @@index([symbol, date])
+  @@map("price_history")
 }
