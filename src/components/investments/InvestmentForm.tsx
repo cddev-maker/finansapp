@@ -137,4 +137,32 @@ export default function InvestmentForm({ initial, onSave, onClose, loading }: Pr
           <FormField control={form.control} name="buyPrice" render={({ field }) => (
             <FormItem>
               <FormLabel>Birim Alım Fiyatı (₺)</FormLabel>
-              <FormControl><Input type="number" step="0.0001" placeholder="0.00" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value
+              <FormControl><Input type="number" step="0.0001" placeholder="0.00" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
+
+        <FormField control={form.control} name="buyDate" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Alım Tarihi</FormLabel>
+            <FormControl><Input type="date" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField control={form.control} name="notes" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Notlar (opsiyonel)</FormLabel>
+            <FormControl><Input placeholder="Ek açıklama..." {...field} /></FormControl>
+          </FormItem>
+        )} />
+
+        <div className="flex gap-3 pt-2">
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1">İptal</Button>
+          <Button type="submit" loading={loading} className="flex-1">{initial ? "Güncelle" : "Kaydet"}</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
